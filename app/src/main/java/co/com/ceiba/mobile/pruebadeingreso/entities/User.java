@@ -87,7 +87,7 @@ public class User implements Serializable{
         this.company = company;
     }
 
-    public class Company implements Serializable {
+    public static class Company implements Serializable {
        private String name;
        private String catchPhrase;
        private String bs;
@@ -123,7 +123,7 @@ public class User implements Serializable{
        }
    }
 
-    public class Address implements Serializable{
+    public static class Address implements Serializable{
         private String street;
         private String suite;
         private String city;
@@ -178,7 +178,7 @@ public class User implements Serializable{
             this.geo = geo;
         }
 
-        public class Geo{
+        public static class Geo{
             private String lat;
             private String lng;
 

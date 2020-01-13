@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
     private EditText search;
     private  ArrayList<User> users;
     private UserAdapter adapter;
-    static ProgressDialog progressDialog;
+    public static ProgressDialog progressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,11 +47,16 @@ public class MainActivity extends Activity {
         users = new ArrayList<>();
         recyclerUsers = (RecyclerView) findViewById(R.id.recyclerViewSearchResults);
         conection = new ConectionSQLiteHelper(this,"bd_user",null,2);
+        progressDialog = new ProgressDialog(this);
+        this.httpClient =  new OkHttpClient();
+        this.gson = new Gson();
 
         if(Util.veirifyConnection(this)){
-            //if(!verifyDB(Util.TABLE_USER)){
+            if(!verifyDB()){
                 getUsers();
-            //}
+            }else{
+                showUsers(users);
+            }
         }
 
 
@@ -62,27 +67,21 @@ public class MainActivity extends Activity {
         search.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                System.out.println("SIIIIIIIIIIIIII");
                 adapter.getFilter().filter(charSequence);
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-                adapter.getFilter().filter(editable);
             }
         });
     }
 
     private void getUsers (){
-        this.httpClient =  new OkHttpClient();
-        this.gson = new Gson();
 
-        progressDialog = new ProgressDialog(this);
         Util.openProggressDialog(progressDialog,getResources().getString(R.string.generic_message_progress));
 
 
@@ -146,19 +145,54 @@ public class MainActivity extends Activity {
         recyclerUsers.setItemAnimator(new DefaultItemAnimator());
         filter();
         recyclerUsers.setAdapter(adapter);
-
     }
 
-    private boolean verifyDB (String name){
+    private boolean verifyDB (){
         boolean isExist= false;
-        SQLiteDatabase db = conection.getWritableDatabase();
-        Cursor cursor = db.rawQuery("select DISTINCT tbl_name from bd_user where tbl_name = '" + name + "'", null);
-        if (cursor != null) {
-            if (cursor.getCount() > 0) {
-                isExist = true;
+        String id,name,username,email,street,suite,city,zipcode,lat,lng,phone,website,companyName,catchPhrase,bs;
+        try{
+            SQLiteDatabase db = conection.getWritableDatabase();
+
+            Cursor cursor = null;
+            cursor =db.rawQuery(Util.QUERY_USERS, null);
+            if (cursor != null) {
+                if (cursor.getCount() > 0) {
+                    if (cursor.moveToFirst()) {
+                        do {
+
+                            id= cursor.getString(0);
+                            name = cursor.getString(1);
+                            username = cursor.getString(2);
+                            email = cursor.getString(3);
+                            street = cursor.getString(4);
+                            suite = cursor.getString(5);
+                            city = cursor.getString(6);
+                            zipcode = cursor.getString(7);
+                            lat = cursor.getString(8);
+                            lng = cursor.getString(9);
+                            phone = cursor.getString(10);
+                            website = cursor.getString(11);
+                            companyName = cursor.getString(12);
+                            catchPhrase = cursor.getString(13);
+                            bs = cursor.getString(14);
+
+                            User.Address.Geo geo = new User.Address.Geo(lat,lng);
+                            User.Address address = new User.Address(street,suite,city,zipcode,geo);
+                            User.Company company = new User.Company(companyName,catchPhrase,bs);
+                            User user = new User(id,name,username,email,address,phone,website,company);
+                            System.out.println("Lista la vaina");
+                            users.add(user);
+
+                        } while(cursor.moveToNext());
+                    }
+                    isExist = true;
+                }
+                cursor.close();
             }
-            cursor.close();
+        }catch(Exception e){
+            e.printStackTrace();
         }
+
         return isExist;
     }
 

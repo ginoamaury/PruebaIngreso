@@ -62,6 +62,7 @@ public class Util {
             " TEXT, "+ATRIBUTE_COMPANY_BS+" TEXT)";
 
 
+    public static final String QUERY_USERS = "select user.id,user.name,user.username, user.email, address.street, address.suite, address.city, address.zipcode, geo.lat,geo.lgn,user.phone,user.website,company.name,company.catchPhrase,company.bs from user,address,geo,company where user.id = address.userid and user.id = geo.userid and user.id = company.userid group by user.id";
 
     public Util() {
     }
